@@ -1,53 +1,92 @@
 <?php
 
-/* @var $this yii\web\View */
+use \yii\helpers\Url;
+use \yii\helpers\Html;
+
+/**
+ * @var $this yii\web\View
+ * @var $aHistory app\models\Prize[]
+ * @var $aMessage []
+ */
 
 $this->title = 'My Yii Application';
 ?>
 <div class="site-index">
 
     <div class="jumbotron">
-        <h1>Congratulations!</h1>
+        <!--<h1>Congratulations!</h1>-->
 
-        <p class="lead">You have successfully created your Yii-powered application.</p>
+        <!--<p class="lead">You have successfully created your Yii-powered application.</p>-->
 
-        <p><a class="btn btn-lg btn-success" href="http://www.yiiframework.com">Get started with Yii</a></p>
-    </div>
+        <?php if(!empty($aHistory)) { ?>
 
-    <div class="body-content">
+        <table class="table">
+            <tbody>
+            <?php foreach ($aHistory as $oPrize) { ?>
+                <?php
+                $oContent = $oPrize->getContent();
 
-        <div class="row">
-            <div class="col-lg-4">
-                <h2>Heading</h2>
+                if(is_null($oContent)){
+                    continue;
+                }
+                ?>
 
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-                    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                    ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                    fugiat nulla pariatur.</p>
+                <tr>
+                    <th scope="row">
+                        <?php echo $oPrize->id; ?>
+                    </th>
+                    <td>
+                        <?php
+                            if($oPrize->isMoney()){
+                                echo 'Денежный приз ' . $oContent->amount . ' $';
+                            }
 
-                <p><a class="btn btn-default" href="http://www.yiiframework.com/doc/">Yii Documentation &raquo;</a></p>
+                            if($oPrize->isBonus()){
+                                echo 'Баллы лояльности ' . $oContent->amount;
+                            }
+
+                            if($oPrize->isItem()){
+                                echo 'Предмет №' . $oContent->item_id;
+                            }
+                        ?>
+                    </td>
+                    <td>
+                        <?php if($oPrize->isMoney() && !$oPrize->isTransferred()) { ?>
+                            <a href="<?php echo Url::toRoute(['site/play', 'converted_id' => $oPrize->id]); ?>">
+                                Конвертировать в баллы
+                            </a>
+                        <?php } ?>
+                    </td>
+                    <td>
+                        <?php if($oPrize->canBeCanceled()) { ?>
+                        <a href="<?php echo Url::toRoute(['site/play', 'remove_id' => $oPrize->id]); ?>">
+                            Отказатся
+                        </a>
+                        <?php }else{ ?>
+                            <?php echo $oPrize->isItem() ? 'Приз отправлен' : 'Денежный приз отправлен на счет' ?>
+                        <?php } ?>
+                    </td>
+                </tr>
+            <?php } ?>
+            </tbody>
+        </table>
+
+        <?php } ?>
+
+        <?php if (!empty($aMessage['text'])){ ?>
+
+            <div class="alert <?php echo empty($aMessage['is_error']) ? 'alert-success' : 'alert-danger' ?>" role="alert">
+                <?php echo Html::encode($aMessage['text']); ?>
             </div>
-            <div class="col-lg-4">
-                <h2>Heading</h2>
 
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-                    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                    ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                    fugiat nulla pariatur.</p>
+        <?php } ?>
 
-                <p><a class="btn btn-default" href="http://www.yiiframework.com/forum/">Yii Forum &raquo;</a></p>
-            </div>
-            <div class="col-lg-4">
-                <h2>Heading</h2>
+        <form method="post">
+            <button class="btn btn-lg btn-success">
+                Получить приз
+            </button>
 
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-                    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                    ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                    fugiat nulla pariatur.</p>
-
-                <p><a class="btn btn-default" href="http://www.yiiframework.com/extensions/">Yii Extensions &raquo;</a></p>
-            </div>
-        </div>
-
+            <input type="hidden" name="_csrf" value="<?=Yii::$app->request->getCsrfToken()?>" />
+        </form>
     </div>
 </div>

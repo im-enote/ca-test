@@ -2,22 +2,43 @@
 
 namespace app\models\prizes;
 
-use \yii\base\BaseObject;
+use yii\db\ActiveRecord;
 
 /**
  * Бонусные балы
+ *
+ * @property int $prize_id ID базового приза
+ * @property int $amount Количество бонусов
  */
-class BonusPoint extends BaseObject
+class BonusPoint extends ActiveRecord
 {
     /**
-     * ID базового приза
-     * @var int
+     * @inheritdoc
      */
-    public $prize_id;
+    public function attributeLabels()
+    {
+        return [
+            'prize_id' => 'Prize id',
+            'amount' => 'Amount',
+        ];
+    }
 
     /**
-     * Количество бонусов
-     * @var int
+     * @inheritdoc
      */
-    public $count;
+    public function rules()
+    {
+        return [
+            [['prize_id', 'amount'], 'required'],
+            [['prize_id', 'amount'], 'integer', 'min' => 1],
+        ];
+    }
+
+    /**
+     * @return string
+     */
+    public static function tableName()
+    {
+        return 'prize_bonuses';
+    }
 }

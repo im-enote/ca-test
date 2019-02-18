@@ -2,22 +2,43 @@
 
 namespace app\models\prizes;
 
-use \yii\base\BaseObject;
+use yii\db\ActiveRecord;
 
 /**
  * Предмет в подарок
+ *
+ * @property int $prize_id ID базового приза
+ * @property int $item_id ID предмета из списка предметов
  */
-class Item extends BaseObject
+class Item extends ActiveRecord
 {
     /**
-     * ID базового приза
-     * @var int
+     * @inheritdoc
      */
-    public $prize_id;
+    public function attributeLabels()
+    {
+        return [
+            'prize_id' => 'Prize id',
+            'item_id' => 'Item id',
+        ];
+    }
 
     /**
-     * ID предмета из списка предметов
-     * @var int
+     * @inheritdoc
      */
-    public $item_id;
+    public function rules()
+    {
+        return [
+            [['prize_id', 'item_id'], 'required'],
+            [['prize_id', 'item_id'], 'integer', 'min' => 1],
+        ];
+    }
+
+    /**
+     * @return string
+     */
+    public static function tableName()
+    {
+        return 'prize_items';
+    }
 }

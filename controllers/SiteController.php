@@ -2,8 +2,10 @@
 
 namespace app\controllers;
 
+use app\services\PrizeService;
 use Yii;
 use yii\filters\AccessControl;
+use yii\helpers\Url;
 use yii\web\Controller;
 use yii\web\Response;
 use yii\filters\VerbFilter;
@@ -59,9 +61,48 @@ class SiteController extends Controller
      *
      * @return string
      */
-    public function actionIndex()
+    public function actionPlay()
     {
-        return $this->render('index');
+        if (Yii::$app->user->isGuest) {
+            return $this->redirect(Url::toRoute('site/login'));
+        }
+
+        $oRequest = Yii::$app->request;
+        $oPrizeService = new PrizeService(Yii::$app->user->id);
+        $serviceMessage = null;
+        $isMessageError = false;
+
+        if(!$oRequest->isPost) {
+            $convertedId = $oRequest->get('converted_id');
+            $removeId = $oRequest->get('remove_id');
+
+            //Если prizeMoneyToBonuses вернуло null - произошла ошибка
+            if (!empty($convertedId) && is_null($oPrizeService->prizeMoneyToBonuses($convertedId, $serviceMessage))) {
+                $isMessageError = true;
+            }
+
+            //Если removePrize вернуло false - произошла ошибка
+            if (!empty($removeId) && !$oPrizeService->removePrize($removeId, $serviceMessage)) {
+                $isMessageError = true;
+            }
+        }
+
+        //Создаем приз, при POST запросе
+        if($oRequest->isPost && !$oPrizeService->playPrize(null, $serviceMessage)) {
+            $isMessageError = true;
+        }
+
+        return $this->render('index', [
+            'aHistory' => $oPrizeService->getPrizesForHistory(),
+            'aMessage' => [
+                'text' => $serviceMessage,
+                'is_error' => $isMessageError
+            ]
+        ]);
+    }
+
+    public function actionIndex(){
+        return $this->redirect(Url::toRoute('site/play'));
     }
 
     /**
